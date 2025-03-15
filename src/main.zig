@@ -8,6 +8,10 @@ const template = @import("template.zig");
 const metrics = @import("metrics.zig");
 const builtin = @import("builtin");
 
+const repos = @import("repos.zig");
+const services = @import("services.zig");
+
+const api = @import("api.zig");
 const migration = @import("migration.zig");
 
 fn notFound(context: *tk.Context, data: *zmpl.Data) !template.Template {
@@ -20,6 +24,10 @@ fn notFound(context: *tk.Context, data: *zmpl.Data) !template.Template {
 
 const App = struct {
     server: *tk.Server,
+    org_repo: repos.Organization.FromPool,
+    tenant_repo: repos.Tenant.FromPool,
+    org_service: services.Organization,
+    tenant_service: services.Tenant,
     routes: []const tk.Route = &.{
         tk.logger(.{}, &.{
             metrics.track(&.{
@@ -28,6 +36,8 @@ const App = struct {
                 .get("/openapi.json", tk.swagger.json(.{ .info = .{ .title = "Kauth" } })),
                 .get("/swagger-ui", tk.swagger.ui(.{ .url = "openapi.json" })),
                 template.templates(&.{
+                    .group("/api/admin/tenants", &.{.router(api.tenants)}),
+                    .group("/api/admin/organizations", &.{.router(api.organizations)}),
                     .get("/*", notFound),
                 }),
             }),
@@ -111,7 +121,7 @@ pub fn main() !void {
         if (injector.find(*tk.Server)) |server| {
             server.injector = injector;
             server_instance = server;
-            //            try server.start();
+            try server.start();
         }
     }
     _ = gpa.detectLeaks();

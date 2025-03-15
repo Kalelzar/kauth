@@ -18,6 +18,7 @@ pub fn build(b: *std.Build) !void {
     const zmpl = b.dependency("zmpl", .{ .target = target, .optimize = optimize }).module("zmpl");
     const pg = b.dependency("pg", .{ .target = target, .optimize = optimize }).module("pg");
     const klib = b.dependency("klib", .{ .target = target, .optimize = optimize }).module("klib");
+    const uuid = b.dependency("uuid", .{ .target = target, .optimize = optimize }).module("uuid");
 
     const lib_mod = b.createModule(.{
         .root_source_file = b.path("src/root.zig"),
@@ -31,6 +32,7 @@ pub fn build(b: *std.Build) !void {
     lib_mod.addImport("zmpl", zmpl);
     lib_mod.addImport("pg", pg);
     lib_mod.addImport("klib", klib);
+    lib_mod.addImport("uuid", uuid);
 
     const exe_mod = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
@@ -45,6 +47,7 @@ pub fn build(b: *std.Build) !void {
     exe_mod.addImport("zmpl", zmpl);
     exe_mod.addImport("pg", pg);
     exe_mod.addImport("klib", klib);
+    exe_mod.addImport("uuid", uuid);
 
     try embedMigrations(b, exe_mod, @alignCast(migrations));
 
