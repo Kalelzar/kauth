@@ -8,7 +8,9 @@ const model = @import("../model/organizations.zig");
 const template = @import("../template.zig");
 
 pub fn @"POST /"(res: *tk.Response, data: *zmpl.Data, organization_service: *OrganizationService, req: model.CreateOrganizationRequest) !template.Template {
-    const response = try organization_service.create(req);
+    var instr = metrics.instrumentAllocator(res.arena);
+    const alloc = instr.allocator();
+    const response = try organization_service.create(alloc, req);
     const root = try data.object();
     switch (response) {
         .result => |r| {

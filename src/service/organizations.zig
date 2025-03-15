@@ -6,19 +6,22 @@ const models = @import("../model/organizations.zig");
 const OrganizationService = @This();
 const ar = @import("../api_result.zig");
 
-repo: *Repository,
+repo_factory: *Repository.FromPool,
 
 pub fn init(repo: *Repository.FromPool) OrganizationService {
     return .{
-        .repo = repo.yield(),
+        .repo_factory = repo,
     };
 }
 
 pub fn create(
     self: *const OrganizationService,
+    allocator: std.mem.Allocator,
     req: models.CreateOrganizationRequest,
 ) !ar.ApiResult(models.CreateOrganizationResponse) {
-    const row = try ar.handleAny(self.repo.create(req));
+    var repo = try self.repo_factory.yield();
+    defer repo.deinit();
+    const row = try ar.handleAny(repo.create(allocator, req));
     return switch (row) {
         .err => |e| return .{
             .err = .{

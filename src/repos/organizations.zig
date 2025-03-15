@@ -14,29 +14,22 @@ pub const OrganizationRow = struct {
     name: []const u8, // TEXT
 };
 
-pub fn init(conn: *pg.Conn) Organizations {
+pub fn init(pool: *pg.Pool) !Organizations {
     return .{
-        .conn = conn,
+        .conn = try pool.acquire(),
     };
 }
 
 pub const FromPool = struct {
-    conn: *pg.Conn,
-    repo: Organizations,
-    pub fn init(pool: *pg.Pool) !FromPool {
-        const conn = try pool.acquire();
+    pool: *pg.Pool,
+    pub fn init(pool: *pg.Pool) FromPool {
         return .{
-            .conn = conn,
-            .repo = Organizations.init(conn),
+            .pool = pool,
         };
     }
 
-    pub fn yield(self: *FromPool) *Organizations {
-        return &self.repo;
-    }
-
-    pub fn deinit(self: *FromPool) void {
-        self.conn.release();
+    pub fn yield(self: *FromPool) !Organizations {
+        return try Organizations.init(self.pool);
     }
 };
 
@@ -46,6 +39,7 @@ pub fn deinit(self: *Organizations) void {
 
 pub fn create(
     self: *Organizations,
+    allocator: std.mem.Allocator,
     req: models.CreateOrganizationRequest,
 ) !OrganizationRow {
     const query =
@@ -75,11 +69,14 @@ pub fn create(
             }
             return e;
         },
-        else => return e,
+        else => {
+            log.err("Encountered an unknown error while creating an organization.\n", .{});
+            return e;
+        },
     };
 
     return .{
-        .id = &urn,
+        .id = try allocator.dupe(u8, &urn),
         .name = req.name,
     };
 }
