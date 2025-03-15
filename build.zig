@@ -5,7 +5,10 @@ pub fn build(b: *std.Build) !void {
     const optimize = b.standardOptimizeOption(.{});
 
     const embed: []const []const u8 = &.{"static/index.html"};
-    const migrations: []const []const u8 = &.{"migrations/00001.initial.up.sql"};
+    const migrations: []const []const u8 = &.{
+        "migrations/00001.initial.up.sql",
+        "migrations/00002.application.up.sql",
+    };
 
     const tk = b.dependency("tokamak", .{ .embed = embed, .target = target, .optimize = optimize });
     const tokamak = tk.module("tokamak");
