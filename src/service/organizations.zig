@@ -29,9 +29,11 @@ pub fn create(
                 .message = e.message,
             },
         },
-        .result => |r| return .{ .result = .{
-            .name = r.name,
-            .id = r.id,
-        } },
+        .result => |r| return .{
+            .result = .{
+                .name = r.name,
+                .id = r.id,
+            },
+        },
     };
 }

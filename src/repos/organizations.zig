@@ -46,7 +46,7 @@ pub fn create(
         \\ insert into organizations (id, name)
         \\   values($1, $2)
     ;
-    const id = uuid.v7.new();
+    const id = uuid.v4.new();
     const urn = uuid.urn.serialize(id);
     _ = self.conn.exec(
         query,
